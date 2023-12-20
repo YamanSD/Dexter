@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script>
+    <link rel="stylesheet" href="css/style.css" type="text/css">
+    <style>
+        .form-control.is-invalid {
+            background-image: none;
+        }
+
+        .was-validated {
+            background-image: none;
+        }
+
+        .form-control.is-invalid, .was-validated .form-control:invalid {
+            background-image: none;
+        }
+
+        .form-control.is-valid, .was-validated .form-control:valid {
+            background-image: none;
+            border-color: #ea3445
+        }
+
+        .form-control:invalid {
+            background-image: none;
+        }
+    </style>
+
+    <meta charset="UTF-8">
+    <title>Dexter - Authenticate</title>
+    <link rel="shortcut icon" href="favicon.svg" type="image/svg">
+    <link rel="icon" href="favicon.svg" type="image/svg">
+</head>
+<body class="container-fluid bg-black">
+    <!-- Static logo image -->
+    <img style="bottom: 0; right: 5%;"
+         class="position-absolute"
+         src="favicon.svg"
+         alt="logo"
+         height="150px"
+    />
+
+    <!-- Error toast -->
+    <div class="toast err-toast text-danger" role="alert">
+        <div class="toast-header justify-content-between">
+            <div class="d-flex flex-row">
+                <i class="bi bi-info-circle text-danger"></i>
+                <strong class="ms-2 text-danger">Error</strong>
+            </div>
+            <button type="button"
+                    class="ml-2 mb-1 close"
+                    data-dismiss="toast"
+                    aria-label="Close"
+                    style="border-radius: 5px;"
+                    onclick="hideToast()"
+            >
+                <span class="fw-bold" aria-hidden="true">X</span>
+            </button>
+        </div>
+        <div id="err_toast_msg" class="toast-body">
+            Server error
+        </div>
+    </div>
+
+    <div class="bg-black d-flex flex-column vh-100 w-100 justify-content-center align-items-center p-4">
+        <!-- Brand name -->
+        <div style="top: 5%;" class="d-flex flex-row position-absolute justify-content-space align-items-center">
+            <img style="margin-top: 12px;" src="favicon.svg" alt="logo" height="45px" />
+            <span style="color: var(--primary-1); font-size: 30px; font-family: Modulus Pro, serif">
+                dexter
+            </span>
+        </div>
+
+        <!-- Welcome user -->
+        <div class="d-flex text-white w-50 flex-column justify-content-between"
+             style="text-align: left; padding-left: 10px; margin-bottom: 10px;"
+        >
+            <h4 id="welcome_title"
+                class="fw-bold"
+            >
+                Welcome Back
+            </h4>
+            <p id="welcome_body"
+               style="font-size: 14px"
+            >
+                Sign in with your email address
+            </p>
+        </div>
+
+        <form id="auth_form" class="text-white w-50 needs-validation">
+            <!-- Email field -->
+            <div class="mb-3">
+                <label for="email_field"
+                       class="form-label"
+                       style="font-weight: 600;">
+                    Email address
+                </label>
+                <input type="email"
+                       onchange="resetEmail()"
+                       placeholder="example@example.com"
+                       class="form-control"
+                       autocomplete="email"
+                       id="email_field"
+                       aria-describedby="email"
+                       style="min-width: 100%;"
+                       required
+                >
+                <div id="email_err_msg" class="invalid-feedback">
+                    Invalid credentials
+                </div>
+                <div id="email_help"
+                     class="form-text text-white-50"
+                     style="margin-left: 4px; display: none"
+                >
+                    We'll never share your email with anyone
+                </div>
+            </div>
+
+            <!-- Password field -->
+            <div class="mb-1">
+                <label for="password_field"
+                       class="form-label" style="font-weight: 600;">
+                    Password
+                </label>
+                <div class="position-relative d-flex flex-row align-items-center">
+                    <i id="vis_icon" style="top: 36%;" class="toggle-password bi bi-eye-slash-fill"
+                       onclick="togglePasswordVisibility()">
+                    </i>
+                    <div style="min-width: 100%; margin-bottom: 15px;">
+                        <input type="password"
+                               onchange="resetPassword()"
+                               placeholder="Your password"
+                               autocomplete="password"
+                               class="form-control"
+                               id="password_field"
+                               style="padding-right: 32px; min-width: 100%;"
+                               required
+                        >
+                        <div id="auth_err_msg" class="invalid-feedback">
+                            Invalid credentials
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Switch to register -->
+            <div class="mb-4 d-flex flex-row align-items-center"
+                 style="margin-left: 5px; font-size: 13px"
+            >
+                <span id="auth_question">
+                    New user?
+                </span>
+                <span id="auth_action"
+                      class="fw-bold"
+                      style="margin-left: 3px;
+                             color: var(--primary-1);
+                             cursor: pointer;"
+                      onclick="changeAuthMode()"
+                >
+                    Register
+                </span>
+            </div>
+
+            <!-- submission button -->
+            <div class="d-flex flex-column w-100 align-items-center">
+                <button type="submit"
+                        id="submit_btn"
+                        class="btn btn-primary"
+                        style="width: 80%;"
+                        onclick="processSubmission(event)"
+                >
+                    Sign in
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let isLogin = true;
+        const emailField = document.getElementById("email_field");
+        const passwordField = document.getElementById("password_field");
+        const welcomeTitle = document.getElementById("welcome_title");
+        const welcomeBody = document.getElementById("welcome_body");
+        const emailHelp = document.getElementById("email_help");
+        const authQuestion = document.getElementById("auth_question");
+        const authAction = document.getElementById("auth_action");
+        const submitBtn = document.getElementById("submit_btn");
+        const passwordIcon = document.getElementById("vis_icon");
+        const form = document.getElementById("auth_form");
+        const errToastMsg = document.getElementById("err_toast_msg");
+
+        function showToast(msg) {
+            const messageElement = document.getElementById("err_toast_msg");
+
+            messageElement.innerText = msg;
+
+            $(document).ready(function() {
+                $(".toast").toast('show');
+            });
+        }
+
+        function hideToast() {
+            $(document).ready(function() {
+                $(".toast").toast('hide');
+            });
+        }
+
+        function changeAuthMode() {
+            if (isLogin) {
+                // Invert to register text
+                welcomeTitle.innerText = "Create an account";
+                welcomeBody.innerText = "Sign up with your email address"
+                emailHelp.style.display = "inline";
+                authQuestion.innerText = "Already a user?";
+                authAction.innerText = "Sign in";
+                submitBtn.innerText = "Sign up";
+            } else {
+                // Invert to login text
+                welcomeTitle.innerText = "Welcome Back";
+                welcomeBody.innerText = "Sign in with your email address"
+                emailHelp.style.display = "none";
+                authQuestion.innerText = "New user?";
+                authAction.innerText = "Register";
+                submitBtn.innerText = "Sign in";
+            }
+
+            isLogin = !isLogin;
+            resetPassword();
+            resetEmail();
+        }
+
+        function resetEmail() {
+            if (!isLogin) {
+                emailHelp.style.display = "inline";
+            }
+
+            form.classList.remove('was-validated');
+
+            emailField.classList.remove("is-invalid");
+        }
+
+        function resetPassword() {
+            passwordIcon.style.color = "var(--primary-2)";
+            passwordIcon.style.top = '36%';
+
+            form.classList.remove('was-validated');
+
+            passwordField.classList.remove("is-invalid");
+        }
+
+        async function processSubmission(e) {
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            const forms = document.querySelectorAll('.needs-validation')
+            let allGood = true;
+
+            // Loop over them and prevent submission
+            forms.forEach(form => {
+                if (!form.checkValidity()) {
+                    allGood = false;
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                form.classList.add('was-validated');
+            });
+
+            if (!allGood) {
+                if (!isLogin) {
+                    emailHelp.style.display = "none";
+                }
+
+                passwordIcon.style.color = 'var(--danger)';
+                passwordIcon.style.top = '25%';
+                return;
+            }
+
+            e.preventDefault();
+
+            fetch(isLogin ? "/api/users/authenticate" : "/api/users/register", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: emailField.value,
+                    password: passwordField.value
+                })
+            }).then(async (r) => {
+                if (r.status !== 200) {
+                    if (!isLogin) {
+                        emailHelp.style.display = "none";
+                    }
+
+                    passwordIcon.style.color = 'var(--danger)';
+                    passwordIcon.style.top = '25%';
+
+                    emailField.classList.add("is-invalid");
+                    passwordField.classList.add("is-invalid");
+                } else {
+                    const token = (await r.json()).token;
+                    localStorage.setItem("token", token);
+
+                    window.location.href = `/?access_token=${token}`
+                }
+            }).catch((e) => {
+                showToast(e.message);
+            });
+        }
+
+        function togglePasswordVisibility() {
+            const isPassword = passwordField.type === "password";
+
+            // Toggle the type attribute of the password field
+            passwordField.type = isPassword ? "text" : "password";
+
+            // Change icon
+            passwordIcon.classList.remove(isPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill');
+            passwordIcon.classList.add(isPassword ? 'bi-eye-fill' : 'bi-eye-slash-fill');
+        }
+    </script>
+</body>
+</html>

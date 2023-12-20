@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Free and open-source online code editor that allows you to write and execute code from a rich set of languages.">
+    <meta name="keywords" content="online editor, online code editor, online ide, online compiler, online interpreter, run code online, learn programming online,
+            online debugger, programming in browser , online code runner, online code execution, debug online, debug C code online, debug C++ code online,
+            programming online, snippet, snippets, code snippet, code snippets, pastebin, execute code, programming in browser, run c online, run C++ online,
+            run java online, run python online, run ruby online, run c# online, run rust online, run pascal online, run basic online">
+    <meta name="author" content="mysd">
+    <meta property="og:title" content="Dexter - online compiler based on Docker">
+    <meta property="og:description" content="Free and open-source online code editor that allows you to write and execute code from a rich set of languages.">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Exo+2" rel="stylesheet">
+    <script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
+
+    <title>Dexter - IDE</title>
+    <link rel="shortcut icon" href="favicon.svg" type="image/svg">
+    <link rel="icon" href="favicon.svg" type="image/svg">
+    <link rel="stylesheet" href="css/style.css" type="text/css">
+
+    <script>
+        let isAdmin = false;
+        let isSuper = false;
+
+        try {
+            let token = "<%= token %>";
+
+            if (!token) {
+                token = localStorage.getItem("token");
+
+                if (!token) {
+                    window.location.href = "/auth";
+                }
+            } else {
+                localStorage.setItem("token", token);
+                window.location.href = "/";
+            }
+        } catch (e) {
+            window.location.href = "/auth";
+        }
+
+        fetch("/api/users/userData", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem("token")
+            }
+        }).then(r => {
+            r.json()
+                .then(
+                    info => {
+                    isAdmin = info.user.is_admin;
+                    isSuper = info.user.is_super;
+                    const navUsers = document.getElementById("nav-users");
+                    const navLangs = document.getElementById("nav-langs");
+                    const navImages = document.getElementById("nav-images");
+                    const vSelectionCont = document.getElementById("v-cont");
+
+                    if (!isAdmin) {
+                        navUsers.style.display = "none";
+                        vSelectionCont.style.display = "none";
+                    }
+
+                    if (!isSuper) {
+                        navLangs.style.display = "none";
+                        navImages.style.display = "none";
+                    }
+                });
+        }).catch();
+    </script>
+</head>
+
+<body id="body_container" class="overflow-hidden">
+    <!-- Success toast -->
+    <div class="toast err-toast text-primary" role="alert" style="z-index: 1000">
+        <div class="toast-header justify-content-between">
+            <div class="d-flex flex-row">
+                <i class="bi bi-info-circle text-primary"></i>
+                <strong class="ms-2 text-primary">Info</strong>
+            </div>
+            <button type="button"
+                    class="ml-2 mb-1 close"
+                    data-dismiss="toast"
+                    aria-label="Close"
+                    style="border-radius: 5px;"
+                    onclick="hideToast()"
+            >
+                <span class="fw-bold" aria-hidden="true">X</span>
+            </button>
+        </div>
+        <div id="err_toast_msg" class="toast-body">
+            Server error
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-xxl bg-black w-100 text-white"
+         style="position: fixed; min-height: 70px; z-index: 100; border-bottom: 1px solid var(--primary-2);"
+    >
+        <!-- Static controls -->
+        <div class="container-fluid text-white">
+            <div class="flex-row d-flex align-items-center w-75">
+                <!-- Brand link -->
+                <a class="navbar-brand fw-bold text-white span-container" href="/">
+                    <span style="color: var(--primary-1); font-size: 30px; font-family: Modulus Pro, serif">
+                        dexter
+                    </span>
+                </a>
+
+                <!-- Run btn -->
+                <button id="run-btn"
+                        style="margin-left: 15px; margin-right: 10px; height: 35px;"
+                        onclick="exec()"
+                        class="ui primary labeled icon small button">
+                    <i id="run-icon" class="play icon"></i>
+                    Run&nbsp;(F9)
+                </button>
+
+                <!-- Language selection -->
+                <div style="min-width: 25%; max-width: 150px;">
+                    <select class="ui dropdown fluid"
+                            id="lang-select"
+                            aria-label="Language selection">
+                        <% for (const lang of langs) {%>
+                            <option value="<%= lang %>"><%= lang.toUpperCase() %></option>
+                        <%}%>
+                    </select>
+                </div>
+
+                <div style="min-width: 10px"></div>
+
+                <!-- Version selection -->
+                <div id="v-cont" style="min-width: 25%; max-width: 150px;">
+                    <select class="ui dropdown fluid"
+                            id="version-select"
+                            aria-label="Language selection">
+                        <% for (const image of images) {%>
+                            <option value="<%= image.version %>">V<%= image.version %> <%= image.inUse ? "(Current)" : "" %></option>
+                        <%}%>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Expansion toggle -->
+            <button class="navbar-toggler text-white"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNavAltMarkup"
+                    aria-controls="navbarNavAltMarkup"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+            >
+                <span class="bi-list" style="font-size: 25px;"></span>
+            </button>
+
+            <!-- Navigation options, hidden inside collapsed -->
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav text-white">
+                    <a class="nav-link active text-white"
+                       aria-current="page"
+                       href="/"
+                    >
+                        Home
+                    </a>
+                    <a class="nav-link active text-white"
+                       aria-current="page"
+                       style="cursor: pointer;"
+                       onclick="navProfile();"
+                    >
+                        Profile
+                    </a>
+                    <a class="nav-link active text-white"
+                       aria-current="page"
+                       style="cursor: pointer;"
+                       id="nav-users"
+                       onclick="navUsersPanel()"
+                    >
+                        Manage Users
+                    </a>
+                    <a class="nav-link active text-white"
+                       aria-current="page"
+                       style="cursor: pointer;"
+                       id="nav-langs"
+                       onclick="navLangsPanel()"
+                    >
+                        Manage Languages
+                    </a>
+                    <a class="nav-link active text-white"
+                       aria-current="page"
+                       style="cursor: pointer;"
+                       id="nav-images"
+                       onclick="navImagesPanel()"
+                    >
+                        Manage Images
+                    </a>
+                    <a class="nav-link active text-white"
+                       style="cursor: pointer;"
+                       aria-current="page"
+                       onclick="logout()"
+                    >
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div style="position: fixed; top: 70px;" class="bg-dark w-100 vh-100">
+        <div id="split-0" class="w-100">
+            <div id="editor" class="w-100 h-100"></div>
+        </div>
+        <div id="split-1" class="w-100 d-flex flex-row ">
+            <div id="stdin-cont" class="bg-dark h-100">
+                <div class="bg-black text-white w-100" style="height: 2rem; padding: 5px;">
+                    <span>Input</span>
+                </div>
+                <div id="stdin" class="h-100 w-100"></div>
+            </div>
+            <div id="stdout-cont" class="bg-dark h-100">
+                <div class="bg-black text-white w-100" style="height: 2rem; padding: 5px; border-left: 2px solid var(--primary-2);">
+                    <span>Output</span>
+                </div>
+                <div id="stdout" class="h-100 w-100 bg-black ps-1 pt-1 overflow-scroll" style="min-height: 100%; padding-bottom: 80px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load the editor, stdin, & stdout -->
+    <script>
+        const imagesInfo = {};
+        let defaultVersion = '';
+        let imageLangs;
+
+        <% for (const image of images) {%>
+            imageLangs = [];
+
+            <% if (image.inUse) { %>
+                defaultVersion = "<%= image.version %>";
+            <%}%>
+
+            <% for (const lang of image.langs) {%>
+                imageLangs.push("<%= lang %>");
+            <%}%>
+
+            imagesInfo["<%= image.version %>"] = {
+                langs: imageLangs
+            };
+        <%}%>
+
+        const langSelection = document.getElementById("lang-select");
+        const versionSelection = document.getElementById("version-select");
+
+        langSelection.addEventListener('change', function() {
+            // Get the selected value
+            const selectedValue = langSelection.value;
+
+            if (selectedValue === ' ') {
+                return;
+            }
+
+            // Perform actions based on the selected value
+            window.setEditorLanguage(selectedValue);
+        });
+
+        versionSelection.addEventListener('change', async function() {
+            const selectedVersion = versionSelection.value;
+
+            // Clear previous info
+            langSelection.innerHTML = ``;
+
+            // Default editor
+            window.setEditorLanguage('plaintext');
+
+            for (const lang of imagesInfo[selectedVersion].langs) {
+                langSelection.innerHTML += `\n<option value="${lang}">${lang.toUpperCase()}</option>`;
+            }
+
+            langSelection.innerHTML += `\n<option value=" " selected='selected'>Select language</option>`;
+        });
+
+        function showToast(msg) {
+            const messageElement = document.getElementById("err_toast_msg");
+
+            messageElement.innerText = msg;
+
+            $(document).ready(function() {
+                $(".toast").toast('show');
+            });
+        }
+
+        function hideToast() {
+            $(document).ready(function() {
+                $(".toast").toast('hide');
+            });
+        }
+
+        $(document).bind('keyup', function(e) {
+            if (e.which === 120) { // f9
+               exec();
+            }
+        });
+
+        function nav(route) {
+            window.location.href = `${route}?access_token=${localStorage.getItem("token")}`;
+        }
+
+        function navProfile() {
+            nav('/profile');
+        }
+
+        function navUsersPanel() {
+            nav('/admin/usersPanel');
+        }
+
+        function navLangsPanel() {
+            nav('/super/langsPanel');
+        }
+
+        function navImagesPanel() {
+            nav('/super/imagesPanel');
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "/auth";
+        }
+
+        async function exec() {
+            const program = window.editor.getValue();
+            const input = window.stdin.getValue().trim();
+
+            const runBtn = document.getElementById("run-btn");
+            const langSelection = document.getElementById("lang-select");
+
+            const lang = langSelection.value;
+
+            const runIcon = document.getElementById("run-icon");
+
+            runBtn.classList.add("disabled");
+            runBtn.classList.remove("primary");
+            runIcon.classList.add("pause");
+            runIcon.classList.remove("play");
+
+            const version = versionSelection.value;
+
+            if (!lang || lang === ' ' || !program) {
+                showToast("No program and/or language");
+            } else {
+                const res = await fetch("/api/exec/execute", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': localStorage.getItem("token"),
+                    },
+                    body: JSON.stringify({
+                        program: program,
+                        input: input,
+                        lang: lang,
+                        version: version === defaultVersion ? undefined : version
+                    })
+                });
+
+                if (res.status === 200) {
+                    const resData = await res.json();
+
+                    document.getElementById('stdout').innerHTML = `<pre class="text-white">${resData.output}<\p>`;
+                } else {
+                    showToast(`Execution error! (${res.status})`);
+                }
+            }
+
+            runBtn.classList.remove("disabled");
+            runBtn.classList.add("primary");
+            runIcon.classList.remove("pause");
+            runIcon.classList.add("play");
+        }
+
+        /* Initialize language dropdown menu */
+        $('.ui.dropdown').dropdown();
+
+        /* Add VS path for Monaco-Editor */
+        require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs' }});
+
+        /* Initialize components */
+        require(['vs/editor/editor.main'], function() {
+            /* Init the code editor */
+            window.editor = monaco.editor.create(document.getElementById('editor'), {
+                value: '',
+                language: 'plaintext',
+                automaticLayout: true,
+                theme: 'vs-dark',
+                gutterAlign: 'end'
+            });
+
+            window.setEditorLanguage = (lang) => {
+                monaco.editor.setModelLanguage(window.editor.getModel(), lang);
+            }
+
+            /* set value for the first time */
+            window.setEditorLanguage(langSelection.value);
+
+            /* Init the input editor */
+            window.stdin = monaco.editor.create(document.getElementById('stdin'), {
+                value: '',
+                language: 'plaintext',
+                automaticLayout: true,
+                theme: 'vs-dark',
+                gutterAlign: 'end',
+                minimap: {
+                    enabled: false
+                }
+            });
+
+            /* Init the vertical split component */
+            Split(['#split-0', '#split-1'], {
+                direction: 'vertical',
+                minSize: 70,
+                gutterSize: 4,
+            });
+
+            /* Init the horizontal (bottom) split component */
+            Split(['#stdin-cont', '#stdout-cont'], {
+                gutterSize: 4,
+                minSize: 5
+            });
+        });
+    </script>
+</body>
+
+</html>

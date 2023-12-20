@@ -1,0 +1,104 @@
+@font-face {
+    font-family: "Modulus Pro";
+    src: url("../fonts/modulus-pro-5.ttf") format("truetype");
+}
+
+:root {
+    --scroll-back: #111;
+    --primary-1: #0074D9;
+    --primary-2: #2185d0;
+    --danger: #ea4335;
+    background: black;
+}
+
+.toggle-password {
+    position: absolute;
+    font-weight: bold;
+    font-size: 20px;
+    color: var(--primary-2);
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.err-toast {
+    width: 200px;
+    position: absolute;
+    top: 5px;
+    color: var(--danger);
+    right: 5px;
+}
+
+body {
+    background: black;
+}
+
+/* width */
+.menu::-webkit-scrollbar {
+    background-color: white;
+}
+
+/* Track */
+.menu::-webkit-scrollbar-track {
+    background-color: white;
+}
+
+
+/* width */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: var(--scroll-back);
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: var(--scroll-back);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--scroll-back);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    /*background: var(--primary-2);*/
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    /*background: #114770;*/
+}
+
+.gutter {
+    background-color: black;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+.gutter.gutter-vertical {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+    cursor: row-resize;
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+    cursor: col-resize;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    color: black;
+    background-color: white;
+}
+
+.jconfirm .jconfirm-box {
+    width: max-content;
+}
+
+.ui.multiple.search.dropdown>input.search {
+    color: black;
+}
+.ui.search.selection.dropdown>input.search {
+    color: black;
+}

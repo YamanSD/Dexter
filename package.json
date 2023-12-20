@@ -1,0 +1,48 @@
+{
+  "name": "online_compiler",
+  "version": "2.1.1",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "build": "rimraf ./build && tsc",
+    "start": "npm run build && node ./build/index.js",
+    "dev": "nodemon",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/cors": "^2.8.15",
+    "@types/dockerode": "^3.3.21",
+    "@types/express": "^4.17.20",
+    "@types/jsonwebtoken": "^9.0.4",
+    "@types/node": "^20.8.10",
+    "ansi-to-html": "^0.7.2",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dockerode": "^4.0.0",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.29.4",
+    "mysql2": "^3.6.2",
+    "node-schedule": "^2.1.1",
+    "nodemailer": "^6.9.7",
+    "nodemon": "^3.0.1",
+    "prettier": "^3.0.3",
+    "sequelize": "^6.33.0",
+    "source-map-support": "^0.5.21",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.1",
+    "@types/node-schedule": "^2.1.4",
+    "rimraf": "^5.0.5"
+  }
+}

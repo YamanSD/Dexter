@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Free and open-source online code editor that allows you to write and execute code from a rich set of languages.">
+    <meta name="keywords" content="online editor, online code editor, online ide, online compiler, online interpreter, run code online, learn programming online,
+            online debugger, programming in browser , online code runner, online code execution, debug online, debug C code online, debug C++ code online,
+            programming online, snippet, snippets, code snippet, code snippets, pastebin, execute code, programming in browser, run c online, run C++ online,
+            run java online, run python online, run ruby online, run c# online, run rust online, run pascal online, run basic online">
+    <meta name="author" content="mysd">
+    <meta property="og:title" content="Dexter - online compiler based on Docker">
+    <meta property="og:description" content="Free and open-source online code editor that allows you to write and execute code from a rich set of languages.">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css" />
+
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Exo+2" rel="stylesheet">
+    <script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
+
+    <title>Dexter - Languages</title>
+    <link rel="shortcut icon" href="../favicon.svg" type="image/svg">
+    <link rel="icon" href="../favicon.svg" type="image/svg">
+
+    <!-- Linked by express, ignore warning -->
+    <link rel="stylesheet" href="../css/style.css" type="text/css">
+
+    <script>
+        let isAdmin = false;
+        let isSuper = false;
+
+        fetch("/api/users/userData", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem("token")
+            }
+        }).then(r => {
+            r.json()
+                .then(
+                    info => {
+                        isAdmin = info.user.is_admin;
+                        isSuper = info.user.is_super;
+
+                        if (!isSuper) {
+                            window.location.href = "/";
+                        }
+                    });
+        }).catch();
+    </script>
+</head>
+<body class="container-fluid bg-black p-0">
+    <div class="confirm vw-100"></div>
+
+    <!-- Error toast -->
+    <div class="toast err-toast text-primary" role="alert" style="z-index: 1000">
+        <div class="toast-header justify-content-between">
+            <div class="d-flex flex-row">
+                <i class="bi bi-info-circle text-primary"></i>
+                <strong class="ms-2 text-primary">Info</strong>
+            </div>
+            <button type="button"
+                    class="ml-2 mb-1 close"
+                    data-dismiss="toast"
+                    aria-label="Close"
+                    style="border-radius: 5px;"
+                    onclick="hideToast()"
+            >
+                <span class="fw-bold" aria-hidden="true">X</span>
+            </button>
+        </div>
+        <div id="err_toast_msg" class="toast-body">
+            Server error
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar bg-black w-100 text-white"
+         style="position: fixed; min-height: 55px; z-index: 100; border-bottom: 1px solid var(--primary-2);"
+    >
+        <!-- Static controls -->
+        <div class="container-fluid text-white">
+            <!-- Go back -->
+            <button class="navbar-toggler text-white"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNavAltMarkup"
+                    aria-controls="navbarNavAltMarkup"
+                    aria-expanded="false"
+                    onclick="window.history.go(-1);"
+                    aria-label="Toggle navigation">
+                <span class="bi-chevron-left" style="font-size: 25px;"></span>
+            </button>
+            <!-- Add user -->
+            <button class="navbar-toggler text-white"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNavAltMarkup"
+                    aria-controls="navbarNavAltMarkup"
+                    aria-expanded="false"
+                    onclick="addLang()"
+                    aria-label="Toggle navigation">
+                <span class="bi bi-node-plus-fill" style="font-size: 22px;">
+                </span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="w-100 bg-dark p-3 overflow-y-scroll overflow-x-hidden"
+         style="top: 55px; border: 3px solid var(--primary-1); color: white; height: calc(100% - 55px); position: absolute;">
+        <table id="table"
+               class="display"
+               style="width: 100%; height: 100%;"></table>
+    </div>
+    <script>
+        function showPrompt(func) {
+            $.confirm({
+                theme: 'supervan',
+                title: 'New language',
+                content: '' +
+                    '<form class="form-group">' +
+                        '<input type="text" placeholder="Language name" class="name form-control" required />' +
+                        '<input type="text" placeholder="Main file" class="mainFile form-control" required />' +
+                        '<input type="text" placeholder="Shell start command" class="startCommand form-control" required />' +
+                        '<input type="number" min=20000 value="20000" class="timeLimit form-control" />' +
+                    '</form>',
+                buttons: {
+                    formSubmit: {
+                        text: 'Confirm',
+                        btnClass: 'btn-blue',
+                        action: async function () {
+                            let name = this.$content.find('.name').val();
+                            let mainFile = this.$content.find('.mainFile').val();
+                            let startCommand = this.$content.find('.startCommand').val();
+                            let timeLimit = this.$content.find('.timeLimit').val();
+
+                            if (!name || !mainFile || !startCommand) {
+                                $.alert('Fill values!');
+                                return false;
+                            }
+
+                            fetch("/api/docker/super/createLanguage", {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': localStorage.getItem("token"),
+                                },
+                                body: JSON.stringify({
+                                    name,
+                                    startCommand,
+                                    mainFile: mainFile,
+                                    timeLimit
+                                })
+                            }).then(res => {
+                                if (res.status === 200) {
+                                    showToast("Creation successful! Refresh to see changes");
+                                    func();
+                                } else {
+                                    $.alert("Language already in use");
+                                }
+                            }).catch();
+                        }
+                    },
+                    cancel: {
+                        text: 'Cancel',
+                    }
+                },
+                onContentReady: function () {
+                    // bind to events
+                    let jc = this;
+                    this.$content.find('form').on('submit', function (e) {
+                        // if the user submits the form by pressing enter in the field.
+                        e.preventDefault();
+                        jc.$$formSubmit.trigger('click'); // reference the button and click it
+                    });
+                }
+            });
+        }
+
+        function showToast(msg) {
+            const messageElement = document.getElementById("err_toast_msg");
+
+            messageElement.innerText = msg;
+
+            $(document).ready(function() {
+                $(".toast").toast('show');
+            });
+        }
+
+        function saveLang(name, index) {
+            $.confirm({
+                theme: 'supervan',
+                title: 'Changes are irreversible',
+                buttons: {
+                    formSubmit: {
+                        text: 'Confirm',
+                        btnClass: 'btn-blue',
+                        action: async function () {
+                            let timeLimit = document.getElementById(`timelimit-${name}`).value;
+                            let mainFile = document.getElementById(`mainfile-${name}`).value.trim();
+                            let startCommand = document.getElementById(`startcommand-${name}`).value.trim();
+                            const originalData = data[index];
+
+                            if (timeLimit === originalData.time_limit) {
+                                timeLimit = undefined;
+                            }
+
+                            if (mainFile === originalData.main_file) {
+                                mainFile = undefined;
+                            }
+
+                            if (startCommand === originalData.start_command) {
+                                startCommand = undefined;
+                            }
+
+                            if (!timeLimit && !mainFile && !startCommand) {
+                                showToast("No changes to process");
+                                return;
+                            }
+
+                            fetch("/api/docker/super/updateLanguage", {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': localStorage.getItem("token"),
+                                },
+                                body: JSON.stringify({
+                                    name,
+                                    startCommand,
+                                    timeLimit,
+                                    mainFile
+                                })
+                            }).then(r => {
+                                if (r.status === 200) {
+                                    showToast("Update successful!");
+                                } else {
+                                    showToast("Update failed please try again!");
+                                }
+                            }).catch();
+                        }
+                    },
+                    cancel: {
+                        text: 'Cancel',
+                    }
+                },
+                onContentReady: function () {
+                    // bind to events
+                    let jc = this;
+                    this.$content.find('form').on('submit', function (e) {
+                        // if the user submits the form by pressing enter in the field.
+                        e.preventDefault();
+                        jc.$$formSubmit.trigger('click'); // reference the button and click it
+                    });
+                }
+            });
+        }
+
+        function hideToast() {
+            $(document).ready(function() {
+                $(".toast").toast('hide');
+            });
+        }
+
+        function addLang() {
+            showPrompt(() => {});
+        }
+
+        const data = [];
+
+        <% for (const lang of langs) {%>
+            data.push({
+                language_name: `<%= lang.language_name %>`,
+                time_limit: `<%= lang.time_limit %>`,
+                main_file: `<%= lang.main_file %>`,
+                start_command: `<%= lang.start_command %>`
+            });
+        <%}%>
+
+        new DataTable('#table', {
+                data: data,
+                columns: [
+                    { data: 'language_name', title: 'Name' },
+                    { data: 'time_limit', title: 'Time Limit (ms)', type: 'numeric', searchable: false,
+                        render: (millis, type, row) => {
+                            if (type !== 'display') {
+                                return parseInt(millis);
+                            }
+
+                            return `<input id="timelimit-${row.language_name}" class="form-control w-75" type="number" min=20000 value="${Math.max(20_000, millis)}" />`;
+                        }
+                    },
+                    { data: 'main_file', title: 'Main File', orderable: false,
+                        render: (main, type, row) => {
+                            return `<input id="mainfile-${row.language_name}" class="form-control w-75" type="text" value="${main}" />`;
+                        }
+                    },
+                    { data: 'start_command', title: 'Start Command', orderable: false,
+                        render: (command, type, row) => {
+                            return `<textarea id="startcommand-${row.language_name}" class="form-control w-75" type="text">${command}</textarea>`;
+                        }
+                    },
+                    { data: 'language_name', searchable: false, orderable: false,
+                        render: (name, type, row, meta) => {
+                            return `<button onclick="saveLang('${name}', ${meta.row})" style="min-width: 3rem;" class="btn btn-primary">Save</button>`;
+                        }
+                    }
+                ],
+                processing: true,
+                responsive: true
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark" lang="en">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+    <link rel="stylesheet" href="css/style.css" type="text/css">
+    <style>
+        .form-control.is-invalid {
+            background-image: none;
+        }
+
+        .was-validated {
+            background-image: none;
+        }
+
+        .form-control.is-invalid, .was-validated .form-control:invalid {
+            background-image: none;
+        }
+
+        .form-control.is-valid, .was-validated .form-control:valid {
+            background-image: none;
+            border-color: var(--danger)
+        }
+
+        .form-control:invalid {
+            background-image: none;
+        }
+    </style>
+
+    <meta charset="UTF-8">
+    <title>Dexter - Authenticate</title>
+    <link rel="shortcut icon" href="favicon.svg" type="image/svg">
+    <link rel="icon" href="favicon.svg" type="image/svg">
+
+    <script>
+        try {
+            let token = "<%= token %>";
+
+            if (!token) {
+                window.location.href = "/auth";
+            } else {
+                localStorage.setItem("token", token);
+            }
+        } catch (e) {
+            window.location.href = "/auth";
+        }
+    </script>
+</head>
+<body class="container-fluid overflow-y-scroll bg-black m-0 p-0">
+    <div class="confirm vw-100"></div>
+
+    <!-- Success toast -->
+    <div class="toast err-toast text-primary" role="alert" style="z-index: 1000">
+        <div class="toast-header justify-content-between">
+            <div class="d-flex flex-row">
+                <i class="bi bi-info-circle text-primary"></i>
+                <strong class="ms-2 text-primary">Info</strong>
+            </div>
+            <button type="button"
+                    class="ml-2 mb-1 close"
+                    data-dismiss="toast"
+                    aria-label="Close"
+                    style="border-radius: 5px;"
+                    onclick="hideToast()"
+            >
+                <span class="fw-bold" aria-hidden="true">X</span>
+            </button>
+        </div>
+        <div id="err_toast_msg" class="toast-body">
+            Server error
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar bg-black w-100 text-white"
+         style="position: fixed; min-height: 55px; z-index: 100; border-bottom: 1px solid var(--primary-2);"
+    >
+        <!-- Static controls -->
+        <div class="container-fluid text-white">
+            <!-- Go back -->
+            <button class="navbar-toggler text-white"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNavAltMarkup"
+                    aria-controls="navbarNavAltMarkup"
+                    aria-expanded="false"
+                    onclick="window.history.go(-1);"
+                    aria-label="Toggle navigation">
+                <span class="bi-chevron-left" style="font-size: 25px;"></span>
+            </button>
+        </div>
+    </nav>
+    <div style="position: fixed; top: 55px;" class="d-flex flex-column align-items-center p-5 bg-dark w-100 vh-100">
+        <form id="auth_form" class="text-white w-100 needs-validation">
+            <!-- Email field -->
+            <div class="mb-3">
+                <label for="email_field"
+                       class="form-label"
+                       style="font-weight: 600;">
+                    New email address
+                </label>
+                <input type="email"
+                       value="<%= user.user_email %>"
+                       onchange="resetEmail()"
+                        <%= user.is_super ? 'disabled' : '' %>
+                       placeholder="example@example.com"
+                       class="form-control"
+                       autocomplete="email"
+                       id="email_field"
+                       aria-describedby="email"
+                       style="min-width: 100%;"
+                       required
+                >
+                <div id="email_err_msg" class="invalid-feedback">
+                    Email already in use
+                </div>
+                <div id="email_help"
+                     class="form-text text-white-50"
+                     style="margin-left: 4px; display: none"
+                >
+                    We'll never share your email with anyone
+                </div>
+            </div>
+
+            <!-- Password field -->
+            <div class="mb-1">
+                <label for="password_field"
+                       class="form-label" style="font-weight: 600;">
+                    New password
+                </label>
+                <div class="position-relative d-flex flex-row align-items-center">
+                    <i id="vis_icon" style="top: 36%;" class="toggle-password bi bi-eye-slash-fill"
+                       onclick="togglePasswordVisibility()">
+                    </i>
+                    <div style="min-width: 100%; margin-bottom: 15px;">
+                        <input type="password"
+                               onchange="resetPassword()"
+                               placeholder="Your password"
+                               autocomplete="password"
+                               class="form-control"
+                               id="password_field"
+                               style="padding-right: 32px; min-width: 100%;"
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="mb-1 ms-1 me-3">
+                <div class="position-relative d-flex flex-row justify-content-between align-items-center">
+                    <p class="fw-bold">
+                        Total <span style="color: var(--primary-1)">memory</span> usage:
+                    </p>
+                    <p style="font-weight: 600;">
+                           <span id="mem_value">
+                           </span>
+                        <span id="mem_unit" style="color: var(--primary-1)">
+                           </span>
+                    </p>
+                </div>
+            </div>
+            <div class="mb-1 ms-1 me-3">
+                <div class="position-relative d-flex flex-row justify-content-between align-items-center">
+                    <p class="fw-bold">
+                        Total execution <span style="color: var(--primary-1)">time</span>:
+                    </p>
+                    <p style="font-weight: 600;">
+                        <%= parseInt(millis) / 1000 %>
+                        <span style="color: var(--primary-1)">
+                               seconds
+                           </span>
+                    </p>
+                </div>
+            </div>
+            <div class="mb-1 ms-1 me-3">
+                <div class="position-relative d-flex flex-row justify-content-between align-items-center">
+                    <p class="fw-bold">
+                        Total <span style="color: var(--primary-1)">executions</span>:
+                    </p>
+                    <p style="font-weight: 600;">
+                        <%= execCount %>
+                    </p>
+                </div>
+            </div>
+            <div class="mb-1 ms-1 me-3">
+                <div class="position-relative d-flex flex-row justify-content-between align-items-center">
+                    <p class="fw-bold">
+                        Join date:
+                    </p>
+                    <p style="font-weight: 600;">
+                        <%= user.joined_at.toLocaleDateString() %>
+                    </p>
+                </div>
+            </div>
+            <div class="mb-5 ms-1 me-3">
+                <div class="position-relative d-flex flex-row justify-content-between align-items-center">
+                    <p class="fw-bold">
+                        Privileges:
+                    </p>
+                    <p style="font-weight: 600; color: var(--primary-1);">
+                        <%= user.is_super
+                                ? "Superuser"
+                                : (
+                                        user.is_admin
+                                                ? "Admin"
+                                                : "User"
+                                )
+                        %>
+                    </p>
+                </div>
+            </div>
+
+            <!-- submission button -->
+            <div class="d-flex flex-column w-100 align-items-center">
+                <button type="submit"
+                        id="submit_btn"
+                        class="btn btn-primary"
+                        style="width: 80%;"
+                        onclick="processSubmission(event)"
+                >
+                    Apply Changes
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const emailField = document.getElementById("email_field");
+        const passwordField = document.getElementById("password_field");
+        const memValue = document.getElementById("mem_value");
+        const memUnit = document.getElementById("mem_unit");
+        const form = document.getElementById("auth_form");
+
+        function showToast(msg) {
+            const messageElement = document.getElementById("err_toast_msg");
+
+            messageElement.innerText = msg;
+
+            $(document).ready(function() {
+                $(".toast").toast('show');
+            });
+        }
+
+        function hideToast() {
+            $(document).ready(function() {
+                $(".toast").toast('hide');
+            });
+        }
+
+        function getMemUnit(value) {
+            value = parseInt(value);
+
+            const scale = Math.floor(Math.log10(value)) + 1;
+
+            if (scale < 3) {
+                return ["B", value];
+            } else if (scale < 6) {
+                return ["KB", (value / 1_000).toFixed(3)];
+            } else if (scale < 9) {
+                return ["MB", (value / 1_000_000).toFixed(3)];
+            } else if (scale < 12) {
+                return ["GB", (value / 1_000_000_000).toFixed(3)];
+            } else {
+                return ["TB", (value / 1_000_000_000_000).toFixed(3)];
+            }
+        }
+
+        const memResult = getMemUnit(<%= bytes %>);
+
+        memValue.innerText = memResult[1];
+        memUnit.innerText = memResult[0];
+
+        function resetEmail() {
+            form.classList.remove('was-validated');
+
+            emailField.classList.remove("is-invalid");
+        }
+
+        function resetPassword() {
+            passwordIcon.style.color = "var(--primary-2)";
+            passwordIcon.style.top = '36%';
+
+            form.classList.remove('was-validated');
+
+            passwordField.classList.remove("is-invalid");
+        }
+
+        function showPrompt(func) {
+            $.confirm({
+                theme: 'supervan',
+                title: 'Confirm your action',
+                content: '' +
+                    '<form class="form-group">' +
+                    '<input type="password" placeholder="Current password" class="password form-control" required />' +
+                    '</form>',
+                buttons: {
+                    formSubmit: {
+                        text: 'Confirm',
+                        btnClass: 'btn-blue',
+                        action: async function () {
+                            let password = this.$content.find('.password').val();
+
+                            if (!password) {
+                                $.alert('Invalid password');
+                                return false;
+                            }
+
+                            const res = await fetch("/api/users/authenticate", {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    email: "<%= user.user_email %>",
+                                    password: password
+                                })
+                            });
+
+                            if (res.status !== 200) {
+                                $.alert('Invalid password');
+                                return false;
+                            }
+
+                            func();
+                        }
+                    },
+                    cancel: {
+                        text: 'Cancel',
+                    }
+                },
+                onContentReady: function () {
+                    // bind to events
+                    let jc = this;
+                    this.$content.find('form').on('submit', function (e) {
+                        // if the user submits the form by pressing enter in the field.
+                        e.preventDefault();
+                        jc.$$formSubmit.trigger('click'); // reference the button and click it
+                    });
+                }
+            });
+        }
+
+        async function processSubmission(e) {
+            e.preventDefault();
+            showPrompt(() => {
+                const password = passwordField.value;
+                const email = emailField.value;
+
+                if (email === "<%= user.user_email %>" && !password) {
+                    showToast("No changes");
+                    return;
+                }
+
+                fetch("/api/users/updateUser", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': "<%= token %>"
+                    },
+                    body: JSON.stringify({
+                        newEmail: email === "<%= user.user_email %>" ? undefined : email,
+                        newPassword: password ? password : undefined
+                    })
+                }).then(async (r) => {
+                    if (r.status !== 200) {
+                        emailField.classList.add("is-invalid");
+                        showToast("Update failure!");
+                    } else {
+                       showToast("Update successful!");
+                       window.location.href = "/auth";
+                    }
+                }).catch((e) => {
+                    showToast(e.message);
+                });
+            });
+        }
+
+        function processDelete(e) {
+            e.preventDefault();
+
+        }
+
+        function togglePasswordVisibility() {
+            const isPassword = passwordField.type === "password";
+
+            // Toggle the type attribute of the password field
+            passwordField.type = isPassword ? "text" : "password";
+
+            // Change icon
+            passwordIcon.classList.remove(isPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill');
+            passwordIcon.classList.add(isPassword ? 'bi-eye-fill' : 'bi-eye-slash-fill');
+        }
+    </script>
+</body>
+</html>
