@@ -1,0 +1,18 @@
+# APP
+APP_PORT=8085
+
+# SUPER USER, used to log total statistics. First admin instance.
+SU_EMAIL=admin@admin.com
+SU_PASS=admin
+
+# DATABASE CRDENTIALS
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=YOUR_ROOT_PASSWORD
+DB_NAME=dexter_db
+DB_PORT=3307
+DB_PEPPER=)pu!lq)cr1b00os+0h8+&utyus@os49@-dtnm_5lo0_lqtvt+m
+
+# JWT (256)
+JWT_SECRET=<&E=DM1vy6,?+Dv/pS|&09Bv?%L5N_!>=ebYW&RwS?w-Oq`Ai*/*`RM}V=7WyQDi8-9^py<:0%Gw/`||\WH.5VGVGMV{DE{xs3o*}zHI%\-cW(<{dsNqY%{bG+8Lt<>rcQVNz@4qw:V[p<'\>.5.&|:N>nPY$1])L=4NoNe9`9~$_:a\=q<51)jQf|WV'C2q(;"L*SYi7{[<9I@Ub$::"AWv@&7R>>d@(\Z:_n+<Y/@<h^{f>W!YA}7*7970CvTU
+JWT_EXPIRY=86400s
