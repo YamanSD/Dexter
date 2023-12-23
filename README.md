@@ -51,6 +51,9 @@ The superuser can control the languages and the Docker images through the websit
 
 - To run the web interface, simply follow the usage instructions and visit the website through `http://localhost:{your port number}`.
 
+- Login page
+![schema](./screenshots/login.png)
+
 - Home page
 ![schema](./screenshots/main.png)
 
