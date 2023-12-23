@@ -6,6 +6,7 @@ Dexter is an online compiler that leverages Node.js and Docker to execute user-p
 
 - [Technologies Used](#technologies-used)
 - [Database Schema](#database-schema)
+- [Editor Design](#editor-design)
 - [API Endpoints](#api-endpoints)
 - [Setup](#setup)
 - [Usage](#usage)
@@ -35,6 +36,20 @@ Dexter is an online compiler that leverages Node.js and Docker to execute user-p
 Dexter utilizes MySQL to store user execution statistics. Below is a representation of the database schema:
 
 ![schema](./screenshots/schema.png)
+
+## Editor Design
+
+Dexter provides a web interface for the users, the admins, and the superuser.
+The editor provides syntax highlighting, suggestions, & many more features that are provided by the Monaco editor.
+Note that the names of programming languages must adhere to the naming of the languages provided under the languages dropdown menu of the following ![demo by Microsoft](https://microsoft.github.io/monaco-editor/).
+The interface also provides the admins with the ability to monitor users.
+The superuser can control the languages and the Docker images through the website.
+
+- To run the web interface, simply follow the usage instructions and visit the website through `http://localhost:{your port number}`.
+
+![schema](./screenshots/main.png)
+![schema](./screenshots/imgTable.png)
+![schema](./screenshots/profile.png)
 
 ## API Endpoints
 
