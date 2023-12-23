@@ -35,6 +35,7 @@ Dexter is an online compiler that leverages Node.js and Docker to execute user-p
 - **JWT**: To provide secure transmission of information.
 - **BCrypt**: To store user data securely in the database.
 - **Typescript**: To provide early error detection, while writing the code.
+- **EJS, HTML, CSS, jQuery, & Boostrap**: For the web interface.
 
 ## Database Schema
 
