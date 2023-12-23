@@ -288,7 +288,7 @@ Dexter exposes the following API endpoints for interaction:
    
 1. Clone the repository: `git clone https://github.com/YamanSD/dexter.git`
 2. Install dependencies: `npm install`
-3. Set up the MySQL connection in the [.env](./env_example) configuration file. **ALL** parameters must be filled.
+3. Set up the MySQL connection in the [.env](./env_example) configuration file. **ALL** parameters must be filled, according to your environment.
 4. Start the application: `npm start`
 
 - By default, each user is given 60 seconds of execution time and 100 MiB of execution memory. To change these parameters, refer to [containerConfig.ts](./exec/containerConfig.ts).
@@ -302,7 +302,7 @@ Dexter exposes the following API endpoints for interaction:
 
 - Have Docker and MySQL running on your machine, then start the Node.js server using `npm start` in the project directory.
 
-- Next go to Postman and check the connection using `http://YOUR_IP:YOUR_PORT`, that you provided in the [.env](./.env) file. If you get a response, then MySQL is working properly.
+- Next go to Postman and check the connection using `http://YOUR_IP:YOUR_PORT`, that you provided in the [.env](./env_example) file. If you get a response, then MySQL is working properly.
 
 - You must then authenticate using the super user using the `/api/users/authenticate` end point. No need to create the super user, they are automatically created. If successful you will receive a JWT token that you have to copy. Paste the token in the headers of requests as `Authorization`.
 
