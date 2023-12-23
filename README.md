@@ -288,7 +288,7 @@ Dexter exposes the following API endpoints for interaction:
    
 1. Clone the repository: `git clone https://github.com/YamanSD/dexter.git`
 2. Install dependencies: `npm install`
-3. Set up the MySQL connection in the [.env](./.env) configuration file. **ALL** parameters must be filled.
+3. Set up the MySQL connection in the [.env](./env_example) configuration file. **ALL** parameters must be filled.
 4. Start the application: `npm start`
 
 - By default, each user is given 60 seconds of execution time and 100 MiB of execution memory. To change these parameters, refer to [containerConfig.ts](./exec/containerConfig.ts).
