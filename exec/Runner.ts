@@ -97,6 +97,7 @@ export default class Runner {
      * @param onErr function called when an error is encountered.
      * @param version version of the image to use.
      * @param uid ID of the user executing the code.
+     * @param memoryLimit Maximum memory usage in bytes.
      * @throws ContainerCreationError if the container creation fails.
      * @private
      */
@@ -104,13 +105,16 @@ export default class Runner {
         callback: Callback<Dockerode.Container>,
         onErr: Callback<unknown>,
         version: number,
-        uid: string
+        uid: string,
+        memoryLimit: number | undefined
     ): void {
         /* generate in use image name */
         const finalImage = generateImageName(version);
 
-        /* add memory limit */
-        const memoryLimit = uid === process.env.SU_EMAIL ? undefined : containerConfig.HostConfig?.Memory;
+        /* remove memory limit for superuser */
+        if (uid === process.env.SU_EMAIL) {
+            memoryLimit = undefined;
+        }
 
         Runner.docker.createContainer({
                 ...containerConfig,
@@ -138,6 +142,7 @@ export default class Runner {
      * @param onErr function called when an error is encountered.
      * @param version version of the image to use.
      * @param uid ID of the user executing the code.
+     * @param memoryLimit Maximum memory usage in bytes.
      * @throws ContainerStartError if the container start fails.
      * @private
      */
@@ -145,7 +150,8 @@ export default class Runner {
         callback: Callback<Dockerode.Container>,
         onErr: Callback<unknown>,
         version: number,
-        uid: string
+        uid: string,
+        memoryLimit: number | undefined
     ): void {
         this.createContainer((container) => {
             container.start((err?: Error) => {
@@ -158,7 +164,7 @@ export default class Runner {
                 Runner.runningContainers++;
                 callback(container);
             });
-        }, onErr, version, uid);
+        }, onErr, version, uid, memoryLimit);
     }
 
     /**
@@ -170,6 +176,7 @@ export default class Runner {
      * @param uid ID of the user executing the code.
      * @param callback function that receives the created exec instance.
      * @param detailCallback function that receives the created exec instance and container.
+     * @param memoryLimit Maximum memory usage in bytes.
      * @throws ContainerExecError if the container exec fails.
      * @throws Error if there is are no callbacks.
      * @private
@@ -178,8 +185,10 @@ export default class Runner {
                           onErr: Callback<unknown>,
                           version: number,
                           uid: string,
+                          memoryLimit: number | undefined,
                           callback?: Callback<Exec>,
-                          detailCallback?: DetailCallback<Exec, Container>): void {
+                          detailCallback?: DetailCallback<Exec, Container>,
+    ): void {
         this.startContainer((container) => {
            container.exec(options, (err?: Error, result?: Exec) => {
                /* check if there are no errors, and that the exec is present */
@@ -196,7 +205,7 @@ export default class Runner {
                    throw new Error("No callback on execContainer");
                }
            });
-        }, onErr, version, uid);
+        }, onErr, version, uid, memoryLimit);
     }
 
     /**
@@ -325,14 +334,18 @@ export default class Runner {
      * @param data to be written to the file
      * @param callback called after the file creation ends successfully.
      *        Takes exec stream and parent container as input.
+     * @param memoryLimit Maximum memory usage in bytes.
      * @private
      */
-    private createFile(filepath: string,
-                       onErr: Callback<unknown>,
-                       version: number,
-                       uid: string,
-                       data: string,
-                       callback: (stream: Duplex, container: Container) => any): void {
+    private createFile(
+        filepath: string,
+        onErr: Callback<unknown>,
+        version: number,
+        uid: string,
+        data: string,
+        callback: (stream: Duplex, container: Container) => any,
+        memoryLimit: number | undefined
+    ): void {
         this.execContainer(
             this.generateFileExecOptions(filepath, data),
             onErr,
@@ -349,7 +362,8 @@ export default class Runner {
                        callback(stream, container);
                     });
                 });
-            }
+            },
+            memoryLimit
         );
     };
 
@@ -418,6 +432,7 @@ export default class Runner {
      * @param version version of the image to use, undefined uses the
      *        current image in use.
      * @param input program input
+     * @param memoryLimit Maximum memory usage in bytes. If not specified, unlimited memory is permitted.
      * @throws LangNotFoundError if the language is not found
      * @returns program output
      */
@@ -428,7 +443,8 @@ export default class Runner {
             program: string,
             language: Language,
             version?: number,
-            input?: string
+            input?: string,
+            memoryLimit?: number
     ): Promise<void> {
         /* wrapper for the onErr use function */
         const onErrWrapped = (e: unknown) => {
@@ -542,7 +558,8 @@ export default class Runner {
                     },
                     true
                 );
-            }
+            },
+            memoryLimit
         );
     }
 

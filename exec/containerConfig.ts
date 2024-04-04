@@ -33,7 +33,7 @@ const containerConfig: ContainerCreateOptions = {
     NetworkDisabled: true,
     Tty: true,
     HostConfig: {
-        Memory: 100 * 1024 * 1024,
+        Memory: 100 * 1024 * 1024, // This value is default for the compiler
         NetworkMode: "none",
     }
 };

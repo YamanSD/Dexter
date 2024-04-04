@@ -2,7 +2,7 @@ import {Request, Response} from 'express';
 import Http from "./Http";
 import {LanguageService, ServiceResponse} from "../services";
 import {handleBadExec, handleBadRes, verifyToken} from "./helpers";
-import {Runner, ExecErrResponse} from "../exec";
+import {Runner, ExecErrResponse, containerConfig} from "../exec";
 import {Language} from "../model";
 import Convert from "ansi-to-html";
 
@@ -59,7 +59,8 @@ export async function execute(req: ExecRequest, res: Response): Promise<Response
                     program,
                     languageRes.result as Language,
                     version,
-                    input
+                    input,
+                    containerConfig.HostConfig.Memory
                 );
             })
         );
