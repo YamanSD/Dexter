@@ -107,8 +107,7 @@ Language.init({
 });
 
 /* junction table for the DockerImage-Language M-N association */
-export const ImageLanguage = database.define('Image_Language',
-    {});
+export const ImageLanguage = database.define('Image_Language', {});
 
 /**
  * @param version version of the docker image
