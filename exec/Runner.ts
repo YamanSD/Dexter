@@ -34,7 +34,7 @@ type DetailCallback<T, G> = (result0: T, result1: G) => any;
  */
 export default class Runner {
     /**
-     * Docker instance that serves as an interface between Node.JS
+     * Docker instance that serves as an interface between Node.js
      * and Docker Remote API.
      * Shared with Builder class.
      *
@@ -181,13 +181,14 @@ export default class Runner {
      * @throws Error if there is are no callbacks.
      * @private
      */
-    private execContainer(options: ExecCreateOptions,
-                          onErr: Callback<unknown>,
-                          version: number,
-                          uid: string,
-                          memoryLimit: number | undefined,
-                          callback?: Callback<Exec>,
-                          detailCallback?: DetailCallback<Exec, Container>,
+    private execContainer(
+        options: ExecCreateOptions,
+        onErr: Callback<unknown>,
+        version: number,
+        uid: string,
+        memoryLimit: number | undefined,
+        callback?: Callback<Exec>,
+        detailCallback?: DetailCallback<Exec, Container>,
     ): void {
         this.startContainer((container) => {
            container.exec(options, (err?: Error, result?: Exec) => {
@@ -323,7 +324,7 @@ export default class Runner {
      * @private
      */
     private get catBound(): string {
-        return `${Runner.catBounds}${Math.floor(Math.random() * 1_000)}`;
+        return `${Runner.catBounds}${String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0')}`;
     }
 
     /**
@@ -351,6 +352,7 @@ export default class Runner {
             onErr,
             version,
             uid,
+            memoryLimit,
             undefined,
             (exec, container) => {
                 this.startExistingExec(exec, onErr, {
@@ -362,8 +364,7 @@ export default class Runner {
                        callback(stream, container);
                     });
                 });
-            },
-            memoryLimit
+            }
         );
     };
 
@@ -433,6 +434,7 @@ export default class Runner {
      *        current image in use.
      * @param input program input
      * @param memoryLimit Maximum memory usage in bytes. If not specified, unlimited memory is permitted.
+     * @param timeLimit Maximum time usage in milliseconds. If not specified, language's default time is used.
      * @throws LangNotFoundError if the language is not found
      * @returns program output
      */
@@ -444,7 +446,8 @@ export default class Runner {
             language: Language,
             version?: number,
             input?: string,
-            memoryLimit?: number
+            memoryLimit?: number,
+            timeLimit?: number
     ): Promise<void> {
         /* wrapper for the onErr use function */
         const onErrWrapped = (e: unknown) => {
@@ -482,7 +485,7 @@ export default class Runner {
 
         /* writable stream that updates the output */
         const stdout = new Writable({
-            write(chunk: string, encoding: BufferEncoding, callback: () => any) {
+            write(chunk: string, _encoding: BufferEncoding, callback: () => any) {
                 output += chunk.toString(); // append container output to current
                 callback();
             },
@@ -513,7 +516,7 @@ export default class Runner {
             version,
             uid,
             program,
-            (stream, container) => {
+            (_stream, container) => {
                 this.startChildExec(
                     container,
                     onErrWrapped,
@@ -553,7 +556,7 @@ export default class Runner {
                                 this.terminateContainer(uid, container, onErrWrapped);
                                 onErrWrapped(new TimeoutError());
                             },
-                            language.timeLimit
+                            timeLimit ?? language.timeLimit
                         ) as any as number;
                     },
                     true

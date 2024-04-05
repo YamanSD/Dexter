@@ -60,7 +60,7 @@ export async function execute(req: ExecRequest, res: Response): Promise<Response
                     languageRes.result as Language,
                     version,
                     input,
-                    containerConfig.HostConfig.Memory
+                    containerConfig.HostConfig?.Memory
                 );
             })
         );
