@@ -221,12 +221,14 @@ export default class Runner {
      *         (not user code errors, but shell errors).
      * @protected
      */
-    protected startExistingExec(exec: Exec,
-                                onErr: Callback<unknown>,
-                                startOptions: ExecStartOptions,
-                                callback: Callback<stream.Duplex>,
-                                preStart?: () => any,
-                                addErrListener?: boolean): void {
+    protected startExistingExec(
+        exec: Exec,
+        onErr: Callback<unknown>,
+        startOptions: ExecStartOptions,
+        callback: Callback<stream.Duplex>,
+        preStart?: () => any,
+        addErrListener?: boolean
+    ): void {
         exec.start(startOptions, (err?: Error, result?: Duplex) => {
             /* check if there are no errors, and that the stream is present */
             if (err || result === undefined) {
@@ -313,9 +315,11 @@ export default class Runner {
      * @param stderr error output stream
      * @protected
      */
-    protected linkTcpSockets(stream: NodeJS.ReadableStream,
-                             stdout: NodeJS.WritableStream,
-                             stderr: NodeJS.WritableStream): void {
+    protected linkTcpSockets(
+        stream: NodeJS.ReadableStream,
+        stdout: NodeJS.WritableStream,
+        stderr: NodeJS.WritableStream
+    ): void {
         Runner.docker.modem.demuxStream(stream, stdout, stderr);
     }
 
