@@ -30,19 +30,19 @@ viewRouter.get('/auth', (req, res) => {
 
 viewRouter.get('/', async (req, res) => {
     // @ts-ignore, provided by sequelize, but not visible.
-    const langs = (await DockerImageService.getInUse()).result.Languages.map(l => l.language_name);
+    const langs = (await DockerImageService.getInUse()).result?.Languages.map(l => l.language_name);
     const images = (await DockerImageService.getHistory()).result?.map(i => {
         return {
             version: i.version,
             inUse: i.isInUse,
             // @ts-ignore, provided by sequelize, but not visible.
-            langs: i.Languages.map(l => l.language_name)
+            langs: i.Languages.map(l => l.language_name) ?? []
         };
     }) ?? [];
 
     res.render('index', {
         token: req.query.access_token,
-        langs: langs,
+        langs: langs ?? [],
         images: images
     });
 });

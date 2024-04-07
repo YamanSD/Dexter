@@ -10,8 +10,10 @@ import 'dotenv/config';
  * @returns created dockerImage if successful.
  *          Otherwise, reason of error & error.
  */
-export async function createDockerImage(version: number,
-                                        dockerfile: string): Result<DockerImage> {
+export async function createDockerImage(
+    version: number,
+    dockerfile: string
+): Result<DockerImage> {
     try {
         const response = await Builder.build(version, dockerfile);
 

@@ -3,6 +3,10 @@
     src: url("../fonts/modulus-pro-5.ttf") format("truetype");
 }
 
+#navbar-container {
+    width: 100px;
+}
+
 :root {
     --scroll-back: #111;
     --primary-1: #0074D9;
