@@ -296,7 +296,7 @@ Dexter exposes the following API endpoints for interaction:
 3. Set up the MySQL connection in the [.env](./env_example) configuration file. **ALL** parameters must be filled, according to your environment.
 4. Start the application: `npm start`
 
-- By default, each user is given 60 seconds of execution time and 100 MiB of execution memory. To change these parameters, refer to [containerConfig.ts](./exec/containerConfig.ts).
+- By default, each user is given 60 seconds of execution time per run and 100 MiB of execution memory. To change these parameters, refer to [containerConfig.ts](./exec/containerConfig.ts).
 
 ## Usage
 
