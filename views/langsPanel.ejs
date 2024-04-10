@@ -297,7 +297,7 @@
                                 return parseInt(millis);
                             }
 
-                            return `<input id="timelimit-${row.language_name}" class="form-control w-75" type="number" min=20000 value="${Math.max(20_000, millis)}" />`;
+                            return `<input id="timelimit-${row.language_name}" class="form-control w-75" type="number" min=0 value="${Math.max(0, millis)}" />`;
                         }
                     },
                     { data: 'main_file', title: 'Main File', orderable: false,
