@@ -65,7 +65,7 @@ export default class Language extends Model<LanguageAttributes, LanguageCreation
      * @param limit new time limit
      */
     public setTimeLimit(limit: number): void {
-        this.setDataValue('time_limit', Math.max(defaultTimeLimit, limit));
+        this.setDataValue('time_limit', limit);
     }
 
     /**
