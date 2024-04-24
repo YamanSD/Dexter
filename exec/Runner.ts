@@ -487,6 +487,9 @@ export default class Runner {
         /* stores the output of the program */
         let output: string = '';
 
+        /* stores the current state of the container */
+        let terminated: boolean = false;
+
         /* writable stream that updates the output */
         const stdout = new Writable({
             write(chunk: string, _encoding: BufferEncoding, callback: () => any) {
@@ -543,6 +546,11 @@ export default class Runner {
                                 clearTimeout(timer);
                             }
 
+                            /* if terminated, do not proceed */
+                            if (terminated) {
+                                return;
+                            }
+
                             /*
                              * Pass output to callback function, after removing input.
                              * +2 to exclude the \n we added at the end of the runStream.write().
@@ -557,6 +565,7 @@ export default class Runner {
                         }
 
                         timer = setTimeout(() => {
+                                terminated = true;
                                 this.terminateContainer(uid, container, onErrWrapped);
                                 onErrWrapped(new TimeoutError());
                             },
